@@ -6,4 +6,4 @@ namespace mallow::config {
         static DefaultAllocator allocator = {};
         return &allocator;
     }
-}
+}  // namespace mallow::config

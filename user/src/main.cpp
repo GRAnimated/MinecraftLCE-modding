@@ -1,12 +1,17 @@
-// This file is the entry point for user code.
 #include <mallow/config.hpp>
 #include <mallow/mallow.hpp>
 
-// If you don't know what to do, see exlaunch for an example.
-// https://github.com/shadowninja108/exlaunch/blob/main/source/program/main.cpp#L3-L37
+#include "biome/BetaBiome.h"
+#include "biome/BetaBiomeDecorator.h"
+#include "gui/DebugScreenOverlay.h"
+#include "patches/DimensionHooks.h"
 
-// Prepares all of the log sinks. If you want to create your own, check
-// mallow/logging/logSinks.hpp and mallow/logging/logSinks.cpp
+#include "Minecraft.Client/Minecraft.h"
+#include "biome/CustomBiomes.h"
+#include "patches/LeafBlockLighting.h"
+#include "patches/MouseAndKeyboard.h"
+#include "world/CustomLevelSource.h"
+
 static void setupLogging() {
     using namespace mallow::log::sink;
     // This sink writes to a file on the SD card.
@@ -16,10 +21,8 @@ static void setupLogging() {
     // This sink writes to a network socket on a host computer. Raw logs are sent with no
     auto config = mallow::config::getConfig();
     if (config["logger"]["ip"].is<const char*>()) {
-        static NetworkSink networkSink = NetworkSink(
-            config["logger"]["ip"],
-            config["logger"]["port"] | 3080
-        );
+        static NetworkSink networkSink =
+            NetworkSink(config["logger"]["ip"], config["logger"]["port"] | 3080);
         if (networkSink.isSuccessfullyConnected())
             addLogSink(&networkSink);
         else
@@ -35,8 +38,21 @@ static void setupLogging() {
 }
 
 extern "C" void userMain() {
-    nn::fs::MountSdCardForDebug("sd");
-    mallow::config::loadConfig(true);
+    // nn::fs::MountSdCardForDebug("sd");
+    // mallow::config::loadConfig(true);
 
-    setupLogging();
+    // setupLogging();
+
+    exl::hook::Initialize();
+
+    // using Patcher = exl::patch::CodePatcher;
+
+    // DebugScreenOverlay::initHooks();
+    CustomBiomes::initHooks();
+    CustomLevelSource::initHooks();
+    BetaBiomeDecorator::initHooks();
+    BetaBiome::initHooks();
+    DimensionHooks::initHooks();
+    LeafBlockLighting::initHooks();
+    MouseAndKeyboard::initHooks();
 }

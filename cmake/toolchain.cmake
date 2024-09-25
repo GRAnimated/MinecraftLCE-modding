@@ -34,6 +34,16 @@ if (NOT EXISTS "${TOOLS_DIR}/clang/bin/clang${EXE_EXT}")
   file(ARCHIVE_EXTRACT INPUT "${TOOLS_TMP_DIR}/clang.${CLANG_ARCHIVE_EXT}" DESTINATION "${TOOLS_TMP_DIR}")
   file(REMOVE_RECURSE "${TOOLS_DIR}/clang")
   file(RENAME "${TOOLS_TMP_DIR}/${CLANG_FOLDER_NAME}" "${TOOLS_DIR}/clang")
+
+  set(CONFIG_SITE_SOURCE "${TOOLS_DIR}/patches/__config_site")
+  set(CONFIG_SITE_DESTINATION "${TOOLS_DIR}/clang/lib/clang-runtimes/aarch64-none-elf/aarch64/include/c++/v1")
+
+  if(EXISTS "${CONFIG_SITE_DESTINATION}")
+    file(REMOVE "${CONFIG_SITE_DESTINATION}")
+  endif()
+
+  # Copy the __config_site file
+  file(COPY "${CONFIG_SITE_SOURCE}" DESTINATION "${CONFIG_SITE_DESTINATION}")
 endif()
 
 if (NOT EXISTS "${TOOLS_DIR}/linkle${EXE_EXT}")
@@ -96,4 +106,4 @@ set(CMAKE_C_COMPILER_WORKS true)
 set(CMAKE_CXX_COMPILER_WORKS true)
 set(CMAKE_ASM_COMPILER_WORKS true)
 
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp -Wl,-z,norelro -g")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp -g")
