@@ -4,3 +4,6 @@
 [submodule "ArduinoJson"]
 	path = libs/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "libs/minecraft"]
+	path = libs/minecraft
+	url = https://github.com/GRAnimated/MinecraftLCE.git
