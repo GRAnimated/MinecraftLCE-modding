@@ -6,14 +6,9 @@
 #include "Minecraft.World/level/levelgen/synth/PerlinSimplexNoise.h"
 #include "biome/BetaBiome.h"
 #include "biome/CustomBiomes.h"
-#include "world/CustomLevelSource.h"
+#include "world/BetaLevelSource.h"
 
-float BetaBiomeSource::zoom = 2.0F;
-float BetaBiomeSource::tempScale = 0.025F;
-float BetaBiomeSource::downfallScale = 0.05F;
-float BetaBiomeSource::noiseScale = 0.25F;
-
-BetaBiomeSource::BetaBiomeSource(Level* paramLevel, long long seed) {
+BetaBiomeSource::BetaBiomeSource(long long seed) {
     Random* temperatureRandom = new Random();
     Random* downfallRandom = new Random();
     Random* noiseRandom = new Random();
@@ -187,11 +182,8 @@ BetaBiomeSource::nonDestructiveGetBiomeBlock(arrayWithLength<Biome*> paramArrayO
             if (d5 > 1.0)
                 d5 = 1.0;
             temps[b1] = d4;
-            dfs[b1] = d5;  // TODO: get downfalls working
-            // temps[b1] = 1.0;
-            // dfs[b1] = 0.5;
+            dfs[b1] = d5;
             paramArrayOfBiome[b1++] = BetaBiome::getBiome(d4, d5);
-            // paramArrayOfBiome[b1++] = CustomBiomes::RAINFOREST;
         }
     }
 

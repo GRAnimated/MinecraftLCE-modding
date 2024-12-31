@@ -1,4 +1,4 @@
-#include "world/CustomLevelSource.h"
+#include "world/BetaLevelSource.h"
 
 #include <exl/patch/code_patcher.hpp>
 #include <mallow/hook/helpers.hpp>
@@ -29,15 +29,15 @@
 #include "biome/CustomBiomes.h"
 #include "feature/BetaSpringFeature.h"
 
-void CustomLevelSource::create(OverworldLevelSource* source, long long seed,
-                               bool generateMapFeatures, void* config) {
+void BetaLevelSource::create(OverworldLevelSource* source, long long seed, bool generateMapFeatures,
+                             void* config) {
     BetaBiome::recalc();
 
-    hCustomLevelSource = new CustomLevelSource(source, seed, generateMapFeatures, config);
+    hBetaLevelSource = new BetaLevelSource(source, seed, generateMapFeatures, config);
 }
 
-CustomLevelSource::CustomLevelSource(OverworldLevelSource* source, long long seed,
-                                     bool generateMapFeatures, void* config)
+BetaLevelSource::BetaLevelSource(OverworldLevelSource* source, long long seed,
+                                 bool generateMapFeatures, void* config)
     : mSource(source), mSeed(seed), mGenerateMapFeatures(generateMapFeatures), mConfig(config) {
     mRandom = new Random();
 
@@ -58,7 +58,7 @@ CustomLevelSource::CustomLevelSource(OverworldLevelSource* source, long long see
     // seed = -1623774494;
     // mSeed = seed;
 
-    mBiomeSource = new BetaBiomeSource(source->mLevel, seed);
+    mBiomeSource = new BetaBiomeSource(seed);
 
     mRandom->setSeed(seed);
 
@@ -69,18 +69,18 @@ CustomLevelSource::CustomLevelSource(OverworldLevelSource* source, long long see
     perlinNoise1 = new PerlinNoise(mRandom, 8);
     perlinNoise2 = new PerlinNoise(mRandom, 4);
     perlinNoise3 = new PerlinNoise(mRandom, 4);
-    scaleNoise = new PerlinNoise(mRandom, 10);
-    depthNoise = new PerlinNoise(mRandom, 16);
-    forestNoise = new PerlinNoise(mRandom, 8);
+    mScaleNoise = new PerlinNoise(mRandom, 10);
+    mDepthNoise = new PerlinNoise(mRandom, 16);
+    mForestNoise = new PerlinNoise(mRandom, 8);
 
     biomes = arrayWithLength<Biome*>(256, true);
 }
 
-CustomLevelSource* CustomLevelSource::getInstance() {
-    return hCustomLevelSource;
+BetaLevelSource* BetaLevelSource::getInstance() {
+    return hBetaLevelSource;
 }
 
-LevelChunk* CustomLevelSource::createChunk(int chunkX, int chunkZ) {
+LevelChunk* BetaLevelSource::createChunk(int chunkX, int chunkZ) {
     mRandom->setSeed((chunkX * 341873128712L) + (chunkZ * 132897987541L));
 
     void* ids = XPhysicalAlloc(0x8000, 0xFFFFFFFFFFFFFFFFLL, 0x1000uLL, 4u);
@@ -120,7 +120,7 @@ double lerp(double start, double end, double t) {
     return start + t * (end - start);
 }
 
-double CustomLevelSource::applySlides(double density, int noiseY) {
+double BetaLevelSource::applySlides(double density, int noiseY) {
     const int topSlideTarget = -10;
     const int topSlideSize = 3;
     const int topSlideOffset = 0;
@@ -144,7 +144,7 @@ double CustomLevelSource::applySlides(double density, int noiseY) {
     return density;
 }
 
-void CustomLevelSource::prepareHeights(int chunkX, int chunkZ, ChunkPrimer* primer) {
+void BetaLevelSource::prepareHeights(int chunkX, int chunkZ, ChunkPrimer* primer) {
     int b1 = 4;
     int seaLevel = 64;
     // int i = b1 + 1;
@@ -217,9 +217,9 @@ void CustomLevelSource::prepareHeights(int chunkX, int chunkZ, ChunkPrimer* prim
     }
 }
 
-arrayWithLength<double> CustomLevelSource::getHeights(arrayWithLength<double> heights, int posX,
-                                                      int posY, int posZ, int width, int depth,
-                                                      int length) {
+arrayWithLength<double> BetaLevelSource::getHeights(arrayWithLength<double> heights, int posX,
+                                                    int posY, int posZ, int width, int depth,
+                                                    int length) {
     if (heights.data == nullptr || int(heights.length) < width * depth * length)
         heights = arrayWithLength<double>(width * depth * length, true);
 
@@ -235,8 +235,8 @@ arrayWithLength<double> CustomLevelSource::getHeights(arrayWithLength<double> he
     arrayWithLength<double> temperatures = mBiomeSource->temperatures;
     arrayWithLength<double> downfalls = mBiomeSource->downfalls;
 
-    sr = scaleNoise->getRegion(sr, posX, posZ, width, length, 1.121, 1.121, 0.5);
-    dr = depthNoise->getRegion(dr, posX, posZ, width, length, 200.0, 200.0, 0.5);
+    sr = mScaleNoise->getRegion(sr, posX, posZ, width, length, 1.121, 1.121, 0.5);
+    dr = mDepthNoise->getRegion(dr, posX, posZ, width, length, 200.0, 200.0, 0.5);
     pnr = perlinNoise1->getRegion(pnr, posX, posY, posZ, width, depth, length, d1 / 80.0,
                                   d2 / 160.0, d1 / 80.0);
     ar = lperlinNoise1->getRegion(ar, posX, posY, posZ, width, depth, length, d1, d2, d1);
@@ -303,13 +303,10 @@ arrayWithLength<double> CustomLevelSource::getHeights(arrayWithLength<double> he
                     d9 = d9 * (1.0 - d) + -10.0 * d;
                 }
                 */
-                double falloffStart = 0.6;  // Adjust this value to control where the falloff
-                                            // begins (closer to 1 = earlier cutoff)
+                double falloffStart = 0.6;
                 if (b4 > depth * falloffStart) {
-                    double falloff =
-                        (b4 - depth * falloffStart) /
-                        (depth * (1.0 - falloffStart));  // Scale falloff over the top portion
-                    falloff = std::min(falloff, 1.0);    // Clamp to 1.0
+                    double falloff = (b4 - depth * falloffStart) / (depth * (1.0 - falloffStart));
+                    falloff = std::min(falloff, 1.0);
                     d9 = d9 * (1.0 - falloff) + -10.0 * falloff;
                 }
 
@@ -338,7 +335,7 @@ arrayWithLength<double> CustomLevelSource::getHeights(arrayWithLength<double> he
     return heights;
 }
 
-void CustomLevelSource::buildSurfaces(int chunkX, int chunkZ, ChunkPrimer* primer) {
+void BetaLevelSource::buildSurfaces(int chunkX, int chunkZ, ChunkPrimer* primer) {
     int sandCutoff = 64;
 
     double scale = 0.03125;
@@ -463,7 +460,7 @@ int getTopSolidBlock(Level* level, int paramInt1, int paramInt2) {
     return -1;
 }
 
-void CustomLevelSource::postProcess(int chunkX, int chunkZ) {
+void BetaLevelSource::postProcess(int chunkX, int chunkZ) {
     // SandTile.instaFall = true;
     int blockX = chunkX * 16;
     int blockZ = chunkZ * 16;
@@ -493,38 +490,6 @@ void CustomLevelSource::postProcess(int chunkX, int chunkZ) {
     // biomes[blockX + blockZ * 16]->decorate(mSource->mLevel, *mRandom, decoratePos);
     biome->decorate(mSource->mLevel, *mRandom, decoratePos);
     delete decoratePos;
-
-    // double d = 0.25;
-
-    // int k;
-
-    /*
-    for (k = 0; k < 8; k++) {
-        int x = blockX + mRandom->nextInt(16) + 8;
-        int y = mRandom->nextInt(128);
-        int z = blockZ + mRandom->nextInt(16) + 8;
-        (new MonsterRoomFeature()).place(source->mLevel, mRandom, BlockPos(x, y, z));
-    }
-
-
-
-    if (mRandom->nextInt(32) == 0) {
-        n = blockX + mRandom->nextInt(16) + 8;
-        int i2 = mRandom->nextInt(128);
-        int i3 = blockZ + mRandom->nextInt(16) + 8;
-        (new PumpkinFeature()).place(source->mLevel, mRandom, n, i2, i3);
-    }
-    n = 0;
-    if (biome == Biomes::desert)
-        n += 10;
-    int i1;
-    for (i1 = 0; i1 < n; i1++) {
-        int i2 = blockX + mRandom->nextInt(16) + 8;
-        int i3 = mRandom->nextInt(128);
-        int i4 = blockZ + mRandom->nextInt(16) + 8;
-        (new CactusFeature()).place(source->mLevel, mRandom, BlockPos(x, y, z));
-    }
-    */
 
     arrayWithLength<double> temps = mBiomeSource->getTemperatureBlock(
         arrayWithLength<double>(), blockX + 8, blockZ + 8, 16, 16);
@@ -557,7 +522,7 @@ void CustomLevelSource::postProcess(int chunkX, int chunkZ) {
     // SandTile.instaFall = false;
 }
 
-struct CustomLevelSourceCreateHook : mallow::hook::Trampoline<CustomLevelSourceCreateHook> {
+struct BetaLevelSourceCreateHook : mallow::hook::Trampoline<BetaLevelSourceCreateHook> {
     static void Callback(OverworldLevelSource* source, long long seed, bool generateMapFeatures,
                          void* config) {
         // seed = 1772835215;
@@ -566,25 +531,23 @@ struct CustomLevelSourceCreateHook : mallow::hook::Trampoline<CustomLevelSourceC
 
         Orig(source, seed, generateMapFeatures, config);
 
-        CustomLevelSource::create(source, seed, generateMapFeatures, config);
+        BetaLevelSource::create(source, seed, generateMapFeatures, config);
     }
 };
 
-struct CustomLevelSourceCreateChunkHook
-    : mallow::hook::Trampoline<CustomLevelSourceCreateChunkHook> {
+struct BetaLevelSourceCreateChunkHook : mallow::hook::Trampoline<BetaLevelSourceCreateChunkHook> {
     static void Callback(OverworldLevelSource* source, int chunkX, int chunkZ) {
         // Orig(chunkX, chunkZ);
 
-        hCustomLevelSource->createChunk(chunkX, chunkZ);
+        hBetaLevelSource->createChunk(chunkX, chunkZ);
     }
 };
 
-struct CustomLevelSourcePostProcessHook
-    : mallow::hook::Trampoline<CustomLevelSourcePostProcessHook> {
+struct BetaLevelSourcePostProcessHook : mallow::hook::Trampoline<BetaLevelSourcePostProcessHook> {
     static void Callback(OverworldLevelSource* source, int chunkX, int chunkZ) {
         // Orig(source, chunkX, chunkZ);
 
-        hCustomLevelSource->postProcess(chunkX, chunkZ);
+        hBetaLevelSource->postProcess(chunkX, chunkZ);
     }
 };
 
@@ -594,8 +557,8 @@ struct LevelGetBiomeHook : mallow::hook::Trampoline<LevelGetBiomeHook> {
 
         // BetaBiome::recalc();
         //
-        // double temperature = hCustomLevelSource->mBiomeSource->getTemperature(pos.x, pos.z);
-        // double downfall = hCustomLevelSource->mBiomeSource->getDownfall(pos.x, pos.z);
+        // double temperature = hBetaLevelSource->mBiomeSource->getTemperature(pos.x, pos.z);
+        // double downfall = hBetaLevelSource->mBiomeSource->getDownfall(pos.x, pos.z);
         //
         // Biome* biome = BetaBiome::getBiome(temperature, downfall);
         // if (!biome)
@@ -610,11 +573,11 @@ struct ShoreLayerIsMesaFix : mallow::hook::Trampoline<ShoreLayerIsMesaFix> {
     static bool Callback(void* shoreLayer, int unk) { return false; }
 };
 
-void CustomLevelSource::initHooks() {
-    CustomLevelSourceCreateHook::InstallAtOffset(0x286C88);
-    CustomLevelSourceCreateChunkHook::InstallAtOffset(0x28825C);
+void BetaLevelSource::initHooks() {
+    BetaLevelSourceCreateHook::InstallAtOffset(0x286C88);
+    BetaLevelSourceCreateChunkHook::InstallAtOffset(0x28825C);
 
-    CustomLevelSourcePostProcessHook::InstallAtOffset(0x288688);
+    BetaLevelSourcePostProcessHook::InstallAtOffset(0x288688);
 
     LevelGetBiomeHook::InstallAtOffset(0x1F95A0);
 

@@ -1,7 +1,6 @@
 #include "biome/CustomBiomes.h"
 #include <exl/patch/code_patcher.hpp>
 
-#include "Minecraft.Core/BlockPos.h"
 #include "Minecraft.World/level/material/MaterialColor.h"
 #include "biome/BetaFlatBiome.h"
 #include "biome/BetaRainforestBiome.h"
@@ -11,7 +10,7 @@
 
 #include "Minecraft.World/level/biome/Biome.h"
 #include "biome/BetaForestBiome.h"
-#include "world/CustomLevelSource.h"
+#include "world/BetaLevelSource.h"
 
 Biome* CustomBiomes::FOREST = nullptr;
 Biome* CustomBiomes::RAINFOREST = nullptr;

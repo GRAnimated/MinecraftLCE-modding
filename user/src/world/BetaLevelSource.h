@@ -12,15 +12,15 @@ class Random;
 class PerlinNoise;
 class PerlinSimplexNoise;
 
-class CustomLevelSource {
+class BetaLevelSource {
 public:
     static void create(OverworldLevelSource* source, long long seed, bool generateMapFeatures,
                        void* config);
 
-    static CustomLevelSource* getInstance();
+    static BetaLevelSource* getInstance();
 
-    CustomLevelSource(OverworldLevelSource* source, long long seed, bool generateMapFeatures,
-                      void* config);
+    BetaLevelSource(OverworldLevelSource* source, long long seed, bool generateMapFeatures,
+                    void* config);
 
     LevelChunk* createChunk(int chunkX, int chunkZ);
 
@@ -48,11 +48,11 @@ public:
     PerlinNoise* perlinNoise1;
     PerlinNoise* perlinNoise2;
     PerlinNoise* perlinNoise3;
-    PerlinNoise* scaleNoise;
-    PerlinNoise* depthNoise;
-    PerlinNoise* forestNoise;
+    PerlinNoise* mScaleNoise;
+    PerlinNoise* mDepthNoise;
+    PerlinNoise* mForestNoise;
 
     arrayWithLength<Biome*> biomes;
 };
 
-static CustomLevelSource* hCustomLevelSource;
+static BetaLevelSource* hBetaLevelSource;

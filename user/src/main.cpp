@@ -1,16 +1,18 @@
+#include <exl/nx/kernel/svc.h>
 #include <mallow/config.hpp>
 #include <mallow/mallow.hpp>
 
+#include "Minecraft.Client/Minecraft.h"
 #include "biome/BetaBiome.h"
 #include "biome/BetaBiomeDecorator.h"
-#include "gui/DebugScreenOverlay.h"
-#include "patches/DimensionHooks.h"
-
-#include "Minecraft.Client/Minecraft.h"
 #include "biome/CustomBiomes.h"
+#include "gui/DebugScreenOverlay.h"
+#include "input/InputHelper.h"
+#include "input/MouseAndKeyboard.h"
+#include "packet/PacketDumper.h"
+#include "patches/DimensionHooks.h"
 #include "patches/LeafBlockLighting.h"
-#include "patches/MouseAndKeyboard.h"
-#include "world/CustomLevelSource.h"
+#include "world/BetaLevelSource.h"
 
 static void setupLogging() {
     using namespace mallow::log::sink;
@@ -37,9 +39,33 @@ static void setupLogging() {
     }
 }
 
+class SelectWorldScreen {
+public:
+    SelectWorldScreen();
+
+    char size[0xE0];
+};
+
+class OptionsScreen {
+public:
+    OptionsScreen(Screen*, Options*);
+
+    char size[0x80];
+};
+
+struct MinecraftRunMiddleHook : public mallow::hook::Trampoline<MinecraftRunMiddleHook> {
+    static void Callback(Minecraft* minecraft) {
+        // if (InputHelper::isHoldR() && InputHelper::isPressA()) {
+        //     minecraft->setScreen(
+        //         (Screen*)new OptionsScreen((Screen*)new SelectWorldScreen(),
+        //         minecraft->mOptions));
+        // }
+        Orig(minecraft);
+    }
+};
+
 extern "C" void userMain() {
-    // nn::fs::MountSdCardForDebug("sd");
-    // mallow::config::loadConfig(true);
+    //  mallow::config::loadConfig(true);
 
     // setupLogging();
 
@@ -47,12 +73,18 @@ extern "C" void userMain() {
 
     // using Patcher = exl::patch::CodePatcher;
 
-    // DebugScreenOverlay::initHooks();
+    // InputHelper::initKBM();
+    // MouseAndKeyboard::initHooks();
+
+    DebugScreenOverlay::initHooks();
     CustomBiomes::initHooks();
-    CustomLevelSource::initHooks();
+    BetaLevelSource::initHooks();
     BetaBiomeDecorator::initHooks();
     BetaBiome::initHooks();
     DimensionHooks::initHooks();
     LeafBlockLighting::initHooks();
-    MouseAndKeyboard::initHooks();
+
+    // PacketDumper::initHooks();
+
+    MinecraftRunMiddleHook::InstallAtOffset(0x6DA2F0);
 }

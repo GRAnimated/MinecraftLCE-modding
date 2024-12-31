@@ -15,7 +15,7 @@
 #include "biome/CustomBiomes.h"
 #include "feature/BetaTreeFeature.h"
 #include "mallow/hook/helpers.hpp"
-#include "world/CustomLevelSource.h"
+#include "world/BetaLevelSource.h"
 
 /*
 template <typename T>
@@ -109,8 +109,8 @@ uint BetaBiome::getGrassColor(BlockPos const* pos) {
     //     x = pos->x;
     //     z = pos->z;
     // }
-    // double temperature = hCustomLevelSource->mBiomeSource->getTempBlock(x, z);
-    // double downfall = hCustomLevelSource->mBiomeSource->getDownBlock(x, z);
+    // double temperature = hBetaLevelSource->mBiomeSource->getTempBlock(x, z);
+    // double downfall = hBetaLevelSource->mBiomeSource->getDownBlock(x, z);
 
     double temperature = 0.0;
     double downfall = 0.0;
@@ -118,9 +118,9 @@ uint BetaBiome::getGrassColor(BlockPos const* pos) {
     return GrassColor::get(temperature, downfall);
 
     //
-    // hCustomLevelSource->mBiomeSource->getBiomeBlock(x, z, 1, 1);
-    // double temperature = hCustomLevelSource->mBiomeSource->temperatures[0];
-    // double downfall = hCustomLevelSource->mBiomeSource->downfalls[0];
+    // hBetaLevelSource->mBiomeSource->getBiomeBlock(x, z, 1, 1);
+    // double temperature = hBetaLevelSource->mBiomeSource->temperatures[0];
+    // double downfall = hBetaLevelSource->mBiomeSource->downfalls[0];
     //
     // return GrassColor::get(temperature, downfall);
 
@@ -137,8 +137,8 @@ uint BetaBiome::getFoliageColor(BlockPos const* pos) {
     //     x = pos->x;
     //     z = pos->z;
     // }
-    // double temperature = hCustomLevelSource->mBiomeSource->getTempBlock(x, z);
-    // double downfall = hCustomLevelSource->mBiomeSource->getDownBlock(x, z);
+    // double temperature = hBetaLevelSource->mBiomeSource->getTempBlock(x, z);
+    // double downfall = hBetaLevelSource->mBiomeSource->getDownBlock(x, z);
 
     double temperature = 0.0;
     double downfall = 0.0;
@@ -146,9 +146,9 @@ uint BetaBiome::getFoliageColor(BlockPos const* pos) {
     return FoliageColor::get(temperature, downfall);
 
     // //
-    // // hCustomLevelSource->mBiomeSource->getBiomeBlock(x, z, 1, 1);
-    // // double temperature = hCustomLevelSource->mBiomeSource->temperatures[0];
-    // // double downfall = hCustomLevelSource->mBiomeSource->downfalls[0];
+    // // hBetaLevelSource->mBiomeSource->getBiomeBlock(x, z, 1, 1);
+    // // double temperature = hBetaLevelSource->mBiomeSource->temperatures[0];
+    // // double downfall = hBetaLevelSource->mBiomeSource->downfalls[0];
     // //
     // // return GrassColor::get(temperature, downfall);
 
@@ -174,7 +174,7 @@ struct BiomeGetSkyColorHook : mallow::hook::Trampoline<BiomeGetSkyColorHook> {
         Entity* player = (Entity*)Minecraft::GetInstance()->mLocalPlayer;
         Vec3 pos = player->getPos(0.0f);
 
-        double temp = CustomLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
+        double temp = BetaLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
 
         temp /= 3.0;
         temp = std::clamp(temp, -1.0, 1.0);
@@ -187,9 +187,8 @@ struct BiomeColorsGetAverageGrassColorHook
     : mallow::hook::Trampoline<BiomeColorsGetAverageGrassColorHook> {
     static uint Callback(LevelSource* levelSource, BlockPos const& pos) {
         double temperature =
-            CustomLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
-        double downfall =
-            CustomLevelSource::getInstance()->mBiomeSource->getDownBlock(pos.x, pos.z);
+            BetaLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
+        double downfall = BetaLevelSource::getInstance()->mBiomeSource->getDownBlock(pos.x, pos.z);
 
         return GrassColor::get(temperature, downfall);
     }
@@ -199,9 +198,8 @@ struct BiomeColorsGetAverageFoliageColorHook
     : mallow::hook::Trampoline<BiomeColorsGetAverageFoliageColorHook> {
     static uint Callback(LevelSource* levelSource, BlockPos const& pos) {
         double temperature =
-            CustomLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
-        double downfall =
-            CustomLevelSource::getInstance()->mBiomeSource->getDownBlock(pos.x, pos.z);
+            BetaLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
+        double downfall = BetaLevelSource::getInstance()->mBiomeSource->getDownBlock(pos.x, pos.z);
 
         return FoliageColor::get(temperature, downfall);
     }
@@ -211,9 +209,8 @@ struct BiomeColorsGetAverageSkyColorHook
     : mallow::hook::Trampoline<BiomeColorsGetAverageSkyColorHook> {
     static uint Callback(LevelSource* levelSource, BlockPos const& pos) {
         double temperature =
-            CustomLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
-        double downfall =
-            CustomLevelSource::getInstance()->mBiomeSource->getDownBlock(pos.x, pos.z);
+            BetaLevelSource::getInstance()->mBiomeSource->getTempBlock(pos.x, pos.z);
+        double downfall = BetaLevelSource::getInstance()->mBiomeSource->getDownBlock(pos.x, pos.z);
 
         Biome* biome = BetaBiome::getBiome(temperature, downfall);
 

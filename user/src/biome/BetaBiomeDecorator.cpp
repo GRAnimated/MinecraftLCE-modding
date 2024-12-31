@@ -20,7 +20,7 @@
 #include "feature/BetaTreeFeature.h"
 #include "mallow/hook/helpers.hpp"
 #include "noise/BetaPerlinNoise.h"
-#include "world/CustomLevelSource.h"
+#include "world/BetaLevelSource.h"
 
 BetaBiomeDecorator::BetaBiomeDecorator() : BiomeDecorator() {}
 
@@ -28,6 +28,15 @@ void BetaBiomeDecorator::decorate(Level* level, Random& random, Biome* biome, Bl
     // BiomeDecorator::decorate(level, random, biome, pos);
 
     double d = 0.25;
+
+    /*
+    for (k = 0; k < 8; k++) {
+        int x = blockX + mRandom->nextInt(16) + 8;
+        int y = mRandom->nextInt(128);
+        int z = blockZ + mRandom->nextInt(16) + 8;
+        (new MonsterRoomFeature()).place(source->mLevel, mRandom, BlockPos(x, y, z));
+    }
+    */
 
     if (random.nextInt(4) == 0) {
         int x = pos.x + random.nextInt(16) + 8;
@@ -108,7 +117,7 @@ void BetaBiomeDecorator::decorate(Level* level, Random& random, Biome* biome, Bl
             .place(level, random, BlockPos(x, y, z));
     }
 
-    PerlinNoise* forestNoise = CustomLevelSource::getInstance()->forestNoise;
+    PerlinNoise* forestNoise = BetaLevelSource::getInstance()->mForestNoise;
 
     double noiseValue = forestNoise->getValue(pos.x * d, pos.z * d);
 
@@ -240,6 +249,25 @@ void BetaBiomeDecorator::decorate(Level* level, Random& random, Biome* biome, Bl
         (BetaSpringFeature(Blocks::FLOWING_LAVA)).place(level, random, BlockPos(i2, i3, i4));
         //(SpringFeature(Blocks::LAVA, false)).place(level, random, BlockPos(i2, i3, i4));
     }
+    /*
+
+    if (mRandom->nextInt(32) == 0) {
+        n = blockX + mRandom->nextInt(16) + 8;
+        int i2 = mRandom->nextInt(128);
+        int i3 = blockZ + mRandom->nextInt(16) + 8;
+        (new PumpkinFeature()).place(source->mLevel, mRandom, n, i2, i3);
+    }
+    n = 0;
+    if (biome == Biomes::desert)
+        n += 10;
+    int i1;
+    for (i1 = 0; i1 < n; i1++) {
+        int i2 = blockX + mRandom->nextInt(16) + 8;
+        int i3 = mRandom->nextInt(128);
+        int i4 = blockZ + mRandom->nextInt(16) + 8;
+        (new CactusFeature()).place(source->mLevel, mRandom, BlockPos(x, y, z));
+    }
+    */
 }
 
 void BetaBiomeDecorator::decorate(Biome* biome, Level* level, Random& random) {
